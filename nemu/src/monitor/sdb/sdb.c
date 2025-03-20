@@ -33,7 +33,9 @@
 static int is_batch_mode = false;
 /*======================================= Global Settings =======================================*/
 
+/// 编译正则表达式，用于表达式求值（如断点/监视点）
 void init_regex();
+/// 初始化监视点池，管理动态分配
 void init_wp_pool();
 
 /*===================================== Function Prototypes =====================================*/
@@ -42,6 +44,7 @@ static char *rl_gets();
 static int cmd_c(char *args);
 static int cmd_q(char *args);
 static int cmd_help(char *args);
+static int cmd_si(char *args);
 
 void sdb_set_batch_mode();
 void sdb_mainloop();
@@ -118,6 +121,7 @@ static struct {
     {.name = "q", .description = "Exit NEMU", .handler = cmd_q},
 
     /* TODO: Add more commands */
+    {.name = "si", .description = "Step N", .handler = cmd_si},
 };
 
 #define NR_CMD ARRLEN(cmd_table)
@@ -169,6 +173,20 @@ static int cmd_help(char *args)
 /*************************************************************************************************/
 
 /*************************************************************************************************/
+static int cmd_si(char *args)
+{
+    int steps = 1;
+    char *endptr;
+
+    steps = strtol(strtok(args, " "), &endptr, 10);
+
+    cpu_exec(steps);
+
+    return 0;
+}
+/*************************************************************************************************/
+
+/*************************************************************************************************/
 void sdb_set_batch_mode()
 {
     is_batch_mode = true;
@@ -176,11 +194,15 @@ void sdb_set_batch_mode()
 /*************************************************************************************************/
 
 /*************************************************************************************************/
+/// 调试器主循环
 void sdb_mainloop()
 {
+    /// 判断是否为批处理模式
     if (is_batch_mode) {
+        /// 如果为真，直接调用cmd_c(NULL) 执行程序
         cmd_c(NULL);
 
+        /// 然后退出
         return;
     }
 
