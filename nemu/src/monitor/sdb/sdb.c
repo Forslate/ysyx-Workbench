@@ -22,6 +22,7 @@
 /// System Libraries with GNU C Library
 #include <readline/readline.h>
 #include <readline/history.h>
+#include <string.h>
 
 /// Project specific modules
 #include "sdb.h"
@@ -45,6 +46,7 @@ static int cmd_c(char *args);
 static int cmd_q(char *args);
 static int cmd_help(char *args);
 static int cmd_si(char *args);
+static int cmd_info(char *args);
 
 void sdb_set_batch_mode();
 void sdb_mainloop();
@@ -122,6 +124,7 @@ static struct {
 
     /* TODO: Add more commands */
     {.name = "si", .description = "Step N", .handler = cmd_si},
+    {.name = "info", .description = "Print register value", .handler = cmd_info},
 };
 
 #define NR_CMD ARRLEN(cmd_table)
@@ -181,6 +184,23 @@ static int cmd_si(char *args)
     steps = strtol(strtok(args, " "), &endptr, 10);
 
     cpu_exec(steps);
+
+    return 0;
+}
+/*************************************************************************************************/
+
+/*************************************************************************************************/
+static int cmd_info(char *args)
+{
+    char *subcmd = strtok(args, " ");
+
+    if (subcmd == NULL) {
+        printf("Usage: info <subcommand>\n");
+    } else if(strcmp(subcmd, "r") != 0) {
+        printf("Wrong!\nRemind: Now only supported print register value\nExample: info r\n");
+    } else if (strcmp(subcmd, "r") == 0) {
+        isa_reg_display();
+    }
 
     return 0;
 }
